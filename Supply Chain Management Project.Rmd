@@ -22,7 +22,9 @@ library (ompr, quietly = TRUE)
 library(ompr.roi, quietly = TRUE)
 ```
 
-$$\text{Building Type and Location Optimization Equations}\\
+$$
+
+\text{Building Type and Location Optimization Equations}\\
 \text{Maximize the following,}\\
 \text{ where }C\text{ is the total Capacity of buildings, }
 i\text{ represents the subregions, and }
@@ -30,14 +32,16 @@ j \text{ is the Building types. }\\
 \sum_{i=1}^{15}\sum_{j=1}^{5} C_{j} * x_{i,j}\\
 \text{  Given the following constraints, where }R
 \text{ is the Regional building limits, and }S\text{ is the Subregion limits }\\
-\sum_{i=1}^{4} x_{i,1} \leq R_1,\; 
-\sum_{i=5}^{7} x_{i,2} \leq R_2,\;
-\sum_{i=8}^{12} x_{i,3} \leq R_3,\;  
-\sum_{i=13}^{13} x_{i,4} \leq R_4,\;
-\sum_{i=14}^{15} x_{i,5} \leq R_5,\;
+\sum_{i=1}^{4}\sum_{j=1}^{5} x_{i,j} \leq R_1,\\ 
+\sum_{i=5}^{7}\sum_{j=1}^{5} x_{i,j} \leq R_2,\\
+\sum_{i=8}^{12}\sum_{j=1}^{5} x_{i,j} \leq R_3,\\  
+\sum_{i=13}^{13}\sum_{j=1}^{5} x_{i,j} \leq R_4,\\
+\sum_{i=14}^{15}\sum_{j=1}^{5} x_{i,j} \leq R_5,\\
 \text{ and } \sum_{j=1}^{5} x_{i,j} \leq S_i \;\forall \; i\\
 \text{And there are also Building Type limits, represented by }B\\ 
-\sum_{i=1}^{15} x_{i,j} \leq B_j \; \forall \; j\\ $$
+\sum_{i=1}^{15} x_{i,j} \leq B_j \; \forall \; j\\ 
+
+$$
 
 
 ```{r model}
@@ -64,14 +68,14 @@ model <- MIPModel() %>%
                j=1:NBuildingTypes, lb=0)%>%
   
   set_objective(sum_expr(C[j]*x[i,j],
-                         j=1:NBuildingTypes,
-                         i=1:NSubregions), "max")%>%
+                         i=1:NSubregions,
+                         j=1:NBuildingTypes), "max")%>%
   
-  add_constraint(sum_expr(x[i,1],i=1:4) <= R[1])%>%
-  add_constraint(sum_expr(x[i,2],i=5:7) <= R[2])%>%
-  add_constraint(sum_expr(x[i,3],i=8:12) <= R[3])%>%
-  add_constraint(x[13,4] <= R[4])%>%
-  add_constraint(sum_expr(x[i,5],i=14:15) <= R[5])%>%
+  add_constraint(sum_expr(x[i,j],i=1:4,j=1:5) <= R[1])%>%
+  add_constraint(sum_expr(x[i,j],i=5:7,j=1:5) <= R[2])%>%
+  add_constraint(sum_expr(x[i,j],i=8:12,j=1:5) <= R[3])%>%
+  add_constraint(sum_expr(x[13,j],j=1:5) <= R[4])%>%
+  add_constraint(sum_expr(x[i,j],i=14:15,j=1:5) <= R[5])%>%
     #Limit buildings per region (NOT WORKING)
   
   add_constraint(sum_expr(x[i,j], j=1:NBuildingTypes) <= S[i],
